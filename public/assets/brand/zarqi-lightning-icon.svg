@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Zarqi">
+  <defs>
+    <linearGradient id="g" x1="13" y1="5" x2="52" y2="59" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A855F7"/>
+      <stop offset="0.52" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+  <path d="M38 3 20 29h12L25 61l21-36H34L46 3Z" fill="url(#g)" stroke="#6D28D9" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>

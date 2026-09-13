@@ -1,0 +1,107 @@
+name: deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Archive
+        run: |
+          tar \
+            --exclude='./.git' \
+            --exclude='./node_modules' \
+            --exclude='./vendor' \
+            --exclude='./.env' \
+            --exclude='./build.tar.gz' \
+            -czf /tmp/build.tar.gz .
+          cp /tmp/build.tar.gz build.tar.gz
+
+      - name: Copy to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "build.tar.gz"
+          target: "/tmp"
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+
+            APP_DIR="/var/www"
+            RELEASE_DIR="/tmp/zarq-release"
+
+            sudo rm -rf "$RELEASE_DIR"
+            sudo mkdir -p "$RELEASE_DIR"
+
+            sudo tar -xzf /tmp/build.tar.gz -C "$RELEASE_DIR"
+
+            sudo rm -rf "$APP_DIR"
+            sudo mkdir -p "$APP_DIR"
+
+            sudo cp -a "$RELEASE_DIR"/. "$APP_DIR"/
+
+            sudo tee "$APP_DIR/.env" > /dev/null <<EOF
+            APP_NAME=Zarq
+            APP_ENV=production
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_DEBUG=false
+            APP_URL=${{ secrets.APP_URL }}
+            ASSET_URL=${{ secrets.APP_URL }}
+
+            LOG_CHANNEL=stack
+            LOG_LEVEL=error
+
+            DB_CONNECTION=pgsql
+            DB_HOST=postgres
+            DB_PORT=5432
+            DB_DATABASE=${{ secrets.POSTGRES_DATABASE }}
+            DB_USERNAME=${{ secrets.POSTGRES_USERNAME }}
+            DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+            POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}
+            POSTGRES_USERNAME=${{ secrets.POSTGRES_USERNAME }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+            MAIL_MAILER=smtp
+            MAIL_SCHEME=smtps
+            MAIL_HOST=smtp.mail.ru
+            MAIL_PORT=465
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}
+            MAIL_FROM_NAME=Zarq
+
+            REGISTRATION_ALLOWED_EMAIL_DOMAINS=mail.ru,inbox.ru,list.ru,bk.ru,internet.ru,yandex.ru,yandex.com,ya.ru,yahoo.com,ymail.com,rocketmail.com,vk.com
+
+            REDIS_HOST=redis
+            REDIS_PORT=6379
+
+            CACHE_STORE=redis
+            SESSION_DRIVER=redis
+            QUEUE_CONNECTION=redis
+
+            AITUNNEL_API_KEY=${{ secrets.AITUNNEL_API_KEY }}
+            EOF
+
+            sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} "$APP_DIR"
+
+            cd "$APP_DIR"
+
+            docker compose -f compose.prod.yaml down
+            docker volume rm www_laravel-public-assets > /dev/null 2>&1 || true
+            docker compose -f compose.prod.yaml up -d --build
+
+
