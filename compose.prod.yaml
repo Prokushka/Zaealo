@@ -21,6 +21,7 @@ services:
       context: .
       dockerfile: ./docker/common/php-fpm/Dockerfile
       target: production
+    image: app-php-runtime
     restart: unless-stopped
     volumes:
       - ./.env:/var/www/.env:ro
@@ -36,18 +37,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 60s
     # The 'depends_on' attribute with 'condition: service_healthy' ensures that
     # this service will not start until the 'postgres' service passes its health check.
     # This prevents the application from trying to connect to the database before it's ready.
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  migrate:
+    image: app-php-runtime
+    restart: "no"
+    environment:
+      RUN_MIGRATIONS: "true"
+    volumes:
+      - ./.env:/var/www/.env:ro
+      - laravel-storage-production:/var/www/storage
+    env_file:
+      - .env
+    networks:
+      - laravel-production
     depends_on:
       postgres:
         condition: service_healthy
 
   queue-images:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: production
+    image: app-php-runtime
     restart: unless-stopped
     command: php artisan queue:work redis --queue=images,default --sleep=1 --tries=2 --timeout=300 --memory=256
     volumes:
@@ -58,6 +75,8 @@ services:
     networks:
       - laravel-production
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       redis:

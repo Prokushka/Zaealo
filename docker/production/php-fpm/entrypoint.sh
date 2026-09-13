@@ -15,11 +15,10 @@ fi
 # Remove storage-init directory
 rm -rf /var/www/storage-init
 
-# Run Laravel migrations
-# -----------------------------------------------------------
-# Ensure the database schema is up to date.
-# -----------------------------------------------------------
-php artisan migrate --force
+if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
+  php artisan migrate --force
+  exit 0
+fi
 
 # Clear and cache configurations
 # -----------------------------------------------------------
