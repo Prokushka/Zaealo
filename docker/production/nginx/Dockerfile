@@ -1,21 +1,25 @@
-# Stage 1: Build assets
-FROM debian AS builder
+# Stage 1: Install Composer packages needed by Vite imports.
+FROM composer:2 AS composer-dependencies
 
-# Install Node.js and build tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    nodejs \
-    npm \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Set working directory
 WORKDIR /var/www
 
-# Copy Laravel application code
-COPY . /var/www
+COPY composer.json composer.lock ./
 
-# Install Node.js dependencies and build assets
-RUN npm install && npm run build
+# Scripts need the full Laravel application and are unnecessary for the asset build.
+RUN composer install --no-dev --no-scripts --optimize-autoloader --no-interaction --no-progress --prefer-dist --ignore-platform-reqs
+
+# Stage 2: Build frontend assets.
+FROM node:22-bookworm-slim AS builder
+
+WORKDIR /var/www
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . /var/www
+COPY --from=composer-dependencies /var/www/vendor /var/www/vendor
+
+RUN npm run build
 
 # Stage 2: Nginx production image
 FROM nginx:alpine

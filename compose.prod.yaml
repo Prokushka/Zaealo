@@ -24,6 +24,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./.env:/var/www/.env:ro
+      - /var/landing:/var/landing
       - laravel-public-assets:/var/www/public/build  # Mount built public assets to ensure the manifest.json and hashed files match between Nginx and PHP-FPM
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
     env_file:
@@ -63,7 +64,7 @@ services:
         condition: service_started
 
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     user: postgres
     ports:
