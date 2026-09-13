@@ -96,20 +96,20 @@ jobs:
             AITUNNEL_API_KEY=${{ secrets.AITUNNEL_API_KEY }}
             AITUNNEL_BASE_URL=https://api.aitunnel.ru
 
-            TELEGRAM_CLIENT_ID=${{TELEGRAM_CLIENT_ID}}
-            TELEGRAM_CLIENT_SECRET=${{TELEGRAM_CLIENT_SECRET}}
-            TELEGRAM_REDIRECT_URI="${{APP_URL}}/auth/telegram/callback"
+            TELEGRAM_CLIENT_ID=${{ TELEGRAM_CLIENT_ID }}
+            TELEGRAM_CLIENT_SECRET=${{ TELEGRAM_CLIENT_SECRET }}
+            TELEGRAM_REDIRECT_URI="${{ APP_URL }}/auth/telegram/callback"
 
 
-            YANDEX_CLIENT_ID=${{YANDEX_CLIENT_ID}}
-            YANDEX_CLIENT_SECRET=${{YANDEX_CLIENT_SECRET}}
-            YANDEX_REDIRECT_URI="${{APP_URL}}/auth/yandex/callback"
+            YANDEX_CLIENT_ID=${{ YANDEX_CLIENT_ID }}
+            YANDEX_CLIENT_SECRET=${{ YANDEX_CLIENT_SECRET }}
+            YANDEX_REDIRECT_URI="${{ APP_URL }}/auth/yandex/callback"
 
-            ZENROWS_API_KEY=${{ZENROWS_API_KEY}}
+            ZENROWS_API_KEY=${{ ZENROWS_API_KEY }}
 
-            OZON_CATEGORIES_CLIENT_ID=${{OZON_CATEGORIES_CLIENT_ID}}
-            OZON_CATEGORIES_API_KEY=${{OZON_CATEGORIES_API_KEY}}
-            WILDBERRIES_CATEGORIES_API_KEY=${{WILDBERRIES_CATEGORIES_API_KEY}}
+            OZON_CATEGORIES_CLIENT_ID=${{ OZON_CATEGORIES_CLIENT_ID }}
+            OZON_CATEGORIES_API_KEY=${{ OZON_CATEGORIES_API_KEY }}
+            WILDBERRIES_CATEGORIES_API_KEY=${{ WILDBERRIES_CATEGORIES_API_KEY }}
             EOF
 
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} "$APP_DIR"
