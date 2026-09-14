@@ -1,7 +1,8 @@
-zarq.ru {
+zarq.ru, app.zarq.ru {
     request_body {
         max_size 60MB
     }
+
     reverse_proxy web:80 {
         header_up X-Forwarded-Proto https
         header_up X-Forwarded-Host {host}

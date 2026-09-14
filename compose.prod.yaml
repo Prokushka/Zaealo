@@ -5,6 +5,7 @@ services:
       dockerfile: ./docker/production/nginx/Dockerfile
     restart: unless-stopped
     volumes:
+      - /var/landing:/var/landing
       - laravel-storage-production:/var/www/storage:ro
       - laravel-public-assets:/var/www/public/build:ro
     networks:
@@ -25,7 +26,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./.env:/var/www/.env:ro
-      - /var/landing:/var/landing
       - laravel-public-assets:/var/www/public/build  # Mount built public assets to ensure the manifest.json and hashed files match between Nginx and PHP-FPM
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
     env_file:
