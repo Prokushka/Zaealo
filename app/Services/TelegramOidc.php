@@ -52,8 +52,8 @@ class TelegramOidc
     {
         $tokens = Http::asForm()
             ->withBasicAuth($this->clientId(), $this->clientSecret())
-            ->connectTimeout(3)
-            ->timeout(10)
+            ->connectTimeout(10)
+            ->timeout(20)
             ->post(self::TOKEN_URL, [
                 'grant_type' => 'authorization_code',
                 'code' => $code,
@@ -71,8 +71,8 @@ class TelegramOidc
         }
 
         $jwks = Cache::remember('telegram.oidc.jwks', now()->addHour(), fn (): array => Http::acceptJson()
-            ->connectTimeout(3)
-            ->timeout(10)
+            ->connectTimeout(10)
+            ->timeout(20)
             ->get(self::JWKS_URL)
             ->throw()
             ->json());

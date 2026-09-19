@@ -1,3 +1,22 @@
+x-queue-worker: &queue-worker
+  image: app-php-runtime
+  restart: unless-stopped
+  stop_grace_period: 5m
+  volumes:
+    - ./.env:/var/www/.env:ro
+    - laravel-storage-production:/var/www/storage
+  env_file:
+    - .env
+  networks:
+    - laravel-production
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
 services:
   web:
     build:
@@ -63,24 +82,63 @@ services:
       postgres:
         condition: service_healthy
 
-  queue-images:
+  storage-init:
     image: app-php-runtime
-    restart: unless-stopped
-    command: php artisan queue:work redis --queue=images,default --sleep=1 --tries=2 --timeout=300 --memory=256
+    user: root
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - |
+        set -eu
+        mkdir -p \
+          /var/www/storage/app/private \
+          /var/www/storage/app/public \
+          /var/www/storage/framework/cache/data \
+          /var/www/storage/framework/sessions \
+          /var/www/storage/framework/testing \
+          /var/www/storage/framework/views \
+          /var/www/storage/logs
+        chown www-data:www-data \
+          /var/www/storage \
+          /var/www/storage/app \
+          /var/www/storage/app/private \
+          /var/www/storage/app/public \
+          /var/www/storage/framework \
+          /var/www/storage/framework/cache \
+          /var/www/storage/framework/cache/data \
+          /var/www/storage/framework/sessions \
+          /var/www/storage/framework/testing \
+          /var/www/storage/framework/views \
+          /var/www/storage/logs
+        chmod 0775 \
+          /var/www/storage \
+          /var/www/storage/app \
+          /var/www/storage/app/private \
+          /var/www/storage/app/public \
+          /var/www/storage/framework \
+          /var/www/storage/framework/cache \
+          /var/www/storage/framework/cache/data \
+          /var/www/storage/framework/sessions \
+          /var/www/storage/framework/testing \
+          /var/www/storage/framework/views \
+          /var/www/storage/logs
     volumes:
-      - ./.env:/var/www/.env:ro
       - laravel-storage-production:/var/www/storage
-    env_file:
-      - .env
-    networks:
-      - laravel-production
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
+    profiles:
+      - maintenance
+
+  queue-image-generation:
+    <<: *queue-worker
+    command: php artisan queue:work redis --queue=image-generation --sleep=1 --memory=512
+
+  queue-marketplace-export:
+    <<: *queue-worker
+    command: php artisan queue:work redis --queue=marketplace-export --sleep=1 --memory=256
+
+  queue-default:
+    <<: *queue-worker
+    command: php artisan queue:work redis --queue=default --sleep=1 --memory=256
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -128,6 +186,9 @@ services:
   redis:
     image: redis:alpine
     restart: unless-stopped  # Automatically restart unless the service is explicitly stopped
+    command: redis-server --appendonly yes --appendfsync everysec
+    volumes:
+      - redis-data-production:/data
     networks:
       - laravel-production
     # Health check for Redis
@@ -151,6 +212,7 @@ networks:
 
 volumes:
   postgres-data-production:
+  redis-data-production:
   laravel-storage-production:
   laravel-public-assets:
   caddy_data:
