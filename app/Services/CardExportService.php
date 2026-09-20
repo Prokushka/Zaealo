@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Exceptions\InsufficientZarks;
 use App\Models\CardExport;
 use App\Models\CardGeneration;
@@ -15,7 +15,10 @@ use Illuminate\Validation\ValidationException;
 
 final class CardExportService
 {
-    public function __construct(private ZarkWallet $wallet) {}
+    public function __construct(
+        private ZarkWallet $wallet,
+        private PricingCatalog $pricing,
+    ) {}
 
     /** @return array{export: CardExport, charged_zarks: int} */
     public function prepareArchive(CardGeneration $generation, User $user): array
@@ -29,7 +32,7 @@ final class CardExportService
                 $export = $this->firstOrCreateExport($lockedGeneration);
                 $hasGeneratedPhoto = $this->hasGeneratedPhoto($lockedGeneration);
                 $cost = ! $hasGeneratedPhoto && $export->cost_zarks === 0
-                    ? ZarkPrice::CardExport
+                    ? $this->pricing->cost(PricingKey::CardExport)
                     : 0;
 
                 $export->update([
@@ -49,8 +52,10 @@ final class CardExportService
                 return ['export' => $export->refresh(), 'charged_zarks' => $cost];
             });
         } catch (InsufficientZarks $exception) {
+            $cost = $this->pricing->cost(PricingKey::CardExport);
+
             throw ValidationException::withMessages([
-                'balance' => "Недостаточно ZARQ: ZIP без ИИ-фото стоит 25, на балансе {$exception->available}. Сгенерируйте хотя бы одно фото — тогда скачивание будет бесплатным — или пополните баланс.",
+                'balance' => "Недостаточно ZARQ: ZIP без ИИ-фото стоит {$cost}, на балансе {$exception->available}. Сгенерируйте хотя бы одно фото — тогда скачивание будет бесплатным — или пополните баланс.",
             ]);
         }
     }

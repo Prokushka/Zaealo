@@ -63,7 +63,8 @@ test('users can authenticate through telegram using a Laravel session', function
     ])->firstOrFail();
 
     expect($account->user->name)->toBe('Иван Иванов')
-        ->and($account->user->email)->toBeNull();
+        ->and($account->user->email)->toBeNull()
+        ->and($account->user->hasVerifiedEmail())->toBeTrue();
 });
 
 test('telegram callback rejects an invalid state', function () {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\GeneratedProductCopyData;
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Models\CardGeneration;
 use App\Models\CardImage;
 use App\Models\User;
@@ -23,6 +23,7 @@ final class RegenerateCardText
         private AiTunnelService $aiTunnel,
         private PromptEngineer $promptEngineer,
         private ZarkWallet $wallet,
+        private PricingCatalog $pricing,
     ) {}
 
     public function handle(User $user, CardGeneration $source): CardGeneration
@@ -45,7 +46,9 @@ final class RegenerateCardText
             ]);
         }
 
-        $generation = DB::transaction(function () use ($user, $source): CardGeneration {
+        $cost = $this->pricing->cost(PricingKey::TextRegeneration);
+
+        $generation = DB::transaction(function () use ($user, $source, $cost): CardGeneration {
             $generation = $source->card->generations()->create([
                 'mode' => $source->mode,
                 'selected_style' => $source->selected_style,
@@ -55,7 +58,7 @@ final class RegenerateCardText
                 'attributes_type_id' => $source->attributes_type_id,
                 'attributes_data' => $source->attributes_data,
                 'status' => 'processing',
-                'cost_zarks' => ZarkPrice::TextRegeneration,
+                'cost_zarks' => $cost,
             ]);
 
             $source->images
@@ -79,7 +82,7 @@ final class RegenerateCardText
 
             $this->wallet->debit(
                 $user,
-                ZarkPrice::TextRegeneration,
+                $cost,
                 'Перегенерация текста товарной карточки',
                 $generation,
             );

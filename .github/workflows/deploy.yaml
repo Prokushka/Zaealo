@@ -80,7 +80,7 @@ jobs:
             MAIL_HOST=smtp.mail.ru
             MAIL_PORT=465
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            MAIL_SMTP_KEY=${{ secrets.MAIL_SMTP_KEY }}
             MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}
             MAIL_FROM_NAME=Zarq
 
@@ -122,4 +122,3 @@ jobs:
             docker compose -f compose.prod.yaml --profile maintenance run --rm --no-deps storage-init
             docker compose -f compose.prod.yaml up -d --wait --wait-timeout 180
             docker compose -f compose.prod.yaml exec -T php-fpm php -r '$path = "/var/www/storage/framework/views"; if (! is_dir($path) || ! is_writable($path)) { fwrite(STDERR, "Blade cache path is unavailable.\n"); exit(1); }'
-

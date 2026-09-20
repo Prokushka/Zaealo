@@ -79,6 +79,10 @@ class YandexAuthenticationController extends Controller
                 ->first();
 
             if ($account !== null) {
+                if (! $account->user->hasVerifiedEmail()) {
+                    $account->user->markEmailAsVerified();
+                }
+
                 return $account->user;
             }
 
@@ -91,8 +95,10 @@ class YandexAuthenticationController extends Controller
                     'email' => $email,
                     'password' => Str::password(32),
                 ]);
-                $user->email_verified_at = $email === null ? null : now();
+                $user->email_verified_at = now();
                 $user->save();
+            } elseif (! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
             }
 
             $user->socialAccounts()->create([

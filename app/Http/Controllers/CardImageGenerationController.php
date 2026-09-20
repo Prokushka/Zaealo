@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Exceptions\InsufficientZarks;
 use App\Http\Requests\GenerateCardImagesRequest;
 use App\Models\CardGeneration;
 use App\Models\CardImage;
+use App\Services\PricingCatalog;
 use App\Services\QueueCardImageGeneration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,10 @@ use Illuminate\Validation\ValidationException;
 
 final class CardImageGenerationController extends Controller
 {
-    public function __construct(private QueueCardImageGeneration $queueImages) {}
+    public function __construct(
+        private QueueCardImageGeneration $queueImages,
+        private PricingCatalog $pricing,
+    ) {}
 
     public function store(GenerateCardImagesRequest $request, CardGeneration $generation): RedirectResponse
     {
@@ -32,7 +36,7 @@ final class CardImageGenerationController extends Controller
             $this->queueImages->handle($request->user(), $generation, $scenarios, $features);
         } catch (InsufficientZarks $exception) {
             $photoCount = count($scenarios);
-            $required = $photoCount * ZarkPrice::ImageGeneration;
+            $required = $photoCount * $this->pricing->cost(PricingKey::ImageGeneration);
 
             throw ValidationException::withMessages([
                 'balance' => "Недостаточно ZARQ: для {$photoCount} фото нужно {$required}, на балансе {$exception->available}. Уберите часть фото или пополните баланс.",

@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\User;
+use App\Notifications\VerifyEmailNotification;
+use Illuminate\Support\Facades\Notification;
+
 test('registration form is rendered on the login screen', function () {
     $response = $this->get('/login');
 
@@ -8,6 +12,8 @@ test('registration form is rendered on the login screen', function () {
 });
 
 test('new users can register', function () {
+    Notification::fake();
+
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
@@ -17,7 +23,13 @@ test('new users can register', function () {
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 
-    $this->get(route('dashboard'))->assertSuccessful();
+    $user = User::query()->where('email', 'test@example.com')->firstOrFail();
+
+    expect($user->hasVerifiedEmail())->toBeFalse();
+    Notification::assertSentTo($user, VerifyEmailNotification::class);
+
+    $this->get(route('dashboard'))
+        ->assertRedirect(route('verification.notice'));
 });
 
 test('gmail addresses can not be used to register', function (string $email) {

@@ -19,7 +19,9 @@ final class DashboardController extends Controller
         $generationId = $request->integer('card_id');
 
         if ($generationId <= 0) {
-            return Inertia::render('Dashboard');
+            return Inertia::render('Dashboard', [
+                'emailVerified' => $request->boolean('verified'),
+            ]);
         }
 
         $generation = CardGeneration::query()
@@ -29,6 +31,7 @@ final class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'card' => $this->presenter->editor($generation),
+            'emailVerified' => $request->boolean('verified'),
         ]);
     }
 }

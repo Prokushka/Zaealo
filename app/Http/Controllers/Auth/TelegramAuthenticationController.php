@@ -80,6 +80,10 @@ class TelegramAuthenticationController extends Controller
                 ->first();
 
             if ($account !== null) {
+                if (! $account->user->hasVerifiedEmail()) {
+                    $account->user->markEmailAsVerified();
+                }
+
                 return $account->user;
             }
 

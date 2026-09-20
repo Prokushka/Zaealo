@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Exceptions\InsufficientZarks;
 use App\Jobs\GenerateCardImage;
 use App\Models\CardGeneration;
@@ -15,7 +15,10 @@ use Illuminate\Support\Str;
 
 final class QueueCardImageGeneration
 {
-    public function __construct(private ZarkWallet $wallet) {}
+    public function __construct(
+        private ZarkWallet $wallet,
+        private PricingCatalog $pricing,
+    ) {}
 
     /**
      * @param  list<array{category: string, subcategory: string}>  $scenarios
@@ -27,16 +30,17 @@ final class QueueCardImageGeneration
     public function handle(User $user, CardGeneration $generation, array $scenarios, array $features): array
     {
         $generation->loadMissing('card');
-        $required = count($scenarios) * ZarkPrice::ImageGeneration;
+        $imageCost = $this->pricing->cost(PricingKey::ImageGeneration);
+        $required = count($scenarios) * $imageCost;
 
-        $imageIds = DB::transaction(function () use ($user, $generation, $scenarios, $features, $required): array {
+        $imageIds = DB::transaction(function () use ($user, $generation, $scenarios, $features, $required, $imageCost): array {
             $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
             if ($lockedUser->balance < $required) {
                 throw new InsufficientZarks($required, $lockedUser->balance);
             }
 
-            return collect($scenarios)->map(function (array $scenario) use ($user, $generation, $features): int {
+            return collect($scenarios)->map(function (array $scenario) use ($user, $generation, $features, $imageCost): int {
                 $image = $generation->card->images()->create([
                     'generation_id' => $generation->getKey(),
                     'type' => CardImage::TYPE_AI_GENERATED,
@@ -50,7 +54,7 @@ final class QueueCardImageGeneration
 
                 $this->wallet->debit(
                     $user,
-                    ZarkPrice::ImageGeneration,
+                    $imageCost,
                     'Генерация фото товарной карточки',
                     $image,
                 );

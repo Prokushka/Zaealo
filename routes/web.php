@@ -10,18 +10,20 @@ use App\Http\Controllers\CompetitorCardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketplaceCategorySearchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SupportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
-})->middleware('auth');
+})->middleware(['auth', 'verified']);
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware('auth')->name('dashboard');
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/docs', fn () => Inertia::render('Docs/Index'))->name('docs');
+    Route::get('/support', SupportController::class)->name('support');
 
     Route::get('/history', [CardHistoryController::class, 'index'])
         ->name('card-history.index');

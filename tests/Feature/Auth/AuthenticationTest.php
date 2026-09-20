@@ -18,6 +18,18 @@ test('users can authenticate using the login screen', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
+    $this->get(route('dashboard'))
+        ->assertRedirect(route('verification.notice'));
+});
+
+test('verified users can access the application after authentication', function () {
+    $user = User::factory()->create();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
     $this->get(route('dashboard'))->assertSuccessful();
 });
 

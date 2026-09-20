@@ -39,6 +39,23 @@ const form = useForm({
             class="mt-6 space-y-6"
         >
             <div>
+                <InputLabel for="support_code" value="Код клиента" />
+
+                <TextInput
+                    id="support_code"
+                    type="text"
+                    class="mt-1 block w-full font-mono"
+                    :model-value="user.support_code"
+                    readonly
+                />
+
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    Сообщите этот код службе поддержки, чтобы мы быстро нашли
+                    ваш аккаунт.
+                </p>
+            </div>
+
+            <div>
                 <InputLabel for="name" value="Name" />
 
                 <TextInput

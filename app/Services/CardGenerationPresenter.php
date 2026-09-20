@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Models\CardGeneration;
 use App\Models\CardImage;
 use App\Models\OzonCategory;
@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 
 final class CardGenerationPresenter
 {
+    public function __construct(private PricingCatalog $pricing) {}
+
     /**
      * @param  Collection<int, CardGeneration>  $generations
      * @return Collection<int, array<string, mixed>>
@@ -42,7 +44,7 @@ final class CardGenerationPresenter
                 'preview_url' => $preview !== null && $this->imageIsAvailable($preview)
                     ? $this->temporaryUrl($preview)
                     : null,
-                'archive_cost' => $archivePrepared ? 0 : ZarkPrice::CardExport,
+                'archive_cost' => $archivePrepared ? 0 : $this->pricing->cost(PricingKey::CardExport),
                 'can_open' => $generation->status === 'completed',
             ];
         });

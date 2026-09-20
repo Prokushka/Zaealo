@@ -8,6 +8,9 @@ COPY composer.json composer.lock ./
 # Scripts need the full Laravel application and are unnecessary for the asset build.
 RUN composer install --no-dev --no-scripts --optimize-autoloader --no-interaction --no-progress --prefer-dist --ignore-platform-reqs
 
+COPY . /var/www
+RUN php artisan filament:assets
+
 # Stage 2: Build frontend assets.
 FROM node:22-bookworm-slim AS builder
 
@@ -18,10 +21,11 @@ RUN npm ci
 
 COPY . /var/www
 COPY --from=composer-dependencies /var/www/vendor /var/www/vendor
+COPY --from=composer-dependencies /var/www/public /var/www/public
 
 RUN npm run build
 
-# Stage 2: Nginx production image
+# Stage 3: Nginx production image
 FROM nginx:alpine
 
 # Copy custom Nginx configuration

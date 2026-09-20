@@ -67,8 +67,8 @@ test('users can authenticate through yandex using a Laravel session', function (
         ->and($account->user->email_verified_at)->not->toBeNull();
 });
 
-test('yandex account is linked to an existing user with the same email', function () {
-    $existingUser = User::factory()->create(['email' => 'ivan@yandex.ru']);
+test('yandex account verifies and links an existing user with the same email', function () {
+    $existingUser = User::factory()->unverified()->create(['email' => 'ivan@yandex.ru']);
 
     $yandex = $this->mock(YandexOAuth::class);
     $yandex->shouldReceive('user')->once()->andReturn([
@@ -90,6 +90,7 @@ test('yandex account is linked to an existing user with the same email', functio
 
     $this->assertAuthenticatedAs($existingUser);
     expect(User::query()->count())->toBe(1)
+        ->and($existingUser->fresh()->hasVerifiedEmail())->toBeTrue()
         ->and($existingUser->socialAccounts()->where('provider', 'yandex')->exists())->toBeTrue();
 });
 

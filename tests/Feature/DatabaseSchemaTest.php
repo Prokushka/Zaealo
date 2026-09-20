@@ -3,9 +3,12 @@
 use Illuminate\Support\Facades\Schema;
 
 it('creates the marketplace card and billing tables', function () {
-    expect(Schema::hasColumns('pricing_rates', [
-        'key', 'title', 'cost_zarks', 'value', 'group',
+    expect(Schema::hasColumns('users', [
+        'support_code', 'admin_role',
     ]))->toBeTrue()
+        ->and(Schema::hasColumns('pricing_rates', [
+            'key', 'title', 'cost_zarks', 'value', 'group',
+        ]))->toBeTrue()
         ->and(Schema::hasColumns('zark_packages', [
             'name', 'zarks_amount', 'price_rub', 'discount_percent', 'is_popular', 'is_active',
         ]))->toBeTrue()
@@ -36,5 +39,8 @@ it('creates the marketplace card and billing tables', function () {
         ->and(Schema::hasColumns('payments', [
             'user_id', 'zark_package_id', 'payment_system', 'external_payment_id',
             'amount_rub', 'zarks_added', 'status',
+        ]))->toBeTrue()
+        ->and(Schema::hasColumns('admin_balance_adjustments', [
+            'user_id', 'administrator_id', 'amount', 'reason',
         ]))->toBeTrue();
 });

@@ -14,6 +14,10 @@ const saveProcessing = ref(false);
 const textRegenerationProcessing = ref(false);
 
 const props = defineProps({
+    emailVerified: {
+        type: Boolean,
+        default: false,
+    },
     card: {
         type: Object,
         default: () => ({
@@ -367,6 +371,15 @@ const refreshBalance = () => {
                 }}
             </h2>
         </template>
+
+        <div
+            v-if="emailVerified"
+            class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200"
+            role="status"
+        >
+            Электронная почта подтверждена. Теперь вам доступны все возможности
+            ZARQ.
+        </div>
 
         <CardBuilderWizard
             ref="cardBuilderWizard"

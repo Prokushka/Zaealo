@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Data\GeneratedProductCopyData;
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Exceptions\InsufficientZarks;
 use App\Http\Requests\AnalyzeCardRequest;
 use App\Http\Requests\CompleteCardAnalysisRequest;
@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AIChoice;
 use App\Services\AiTunnelService;
 use App\Services\CategoryMatcherService;
+use App\Services\PricingCatalog;
 use App\Services\PromptEngineer;
 use App\Services\ZarkWallet;
 use Illuminate\Http\RedirectResponse;
@@ -33,6 +34,7 @@ class CardAnalysisController extends Controller
         private CategoryMatcherService $categoryMatcher,
         private PromptEngineer $promptEngineer,
         private ZarkWallet $wallet,
+        private PricingCatalog $pricing,
     ) {}
 
     public function store(AnalyzeCardRequest $request): RedirectResponse
@@ -165,7 +167,7 @@ class CardAnalysisController extends Controller
     private function generateCopy(CardGeneration $generation, User $user, string $prompt, array $imageUrls, ?array $promptData = null): GeneratedProductCopyData
     {
         $model = $generation->selected_style === 'pro' ? AIChoice::Sonnet : AIChoice::QWEN_FLASH;
-        $cost = $model === AIChoice::Sonnet ? ZarkPrice::ProCopywriting : 0;
+        $cost = $model === AIChoice::Sonnet ? $this->pricing->cost(PricingKey::ProCopywriting) : 0;
         $debited = false;
 
         if ($cost > 0) {

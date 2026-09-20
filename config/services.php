@@ -50,6 +50,9 @@ return [
         'base_url' => env('AITUNNEL_BASE_URL', 'https://api.aitunnel.ru'),
         'model' => env('AITUNNEL_MODEL', 'auto'),
     ],
+    'mailru' => [
+        'key' => env('MAIL_SMTP_KEY'),
+    ],
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

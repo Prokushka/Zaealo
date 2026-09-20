@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\ZarkPrice;
+use App\Enums\PricingKey;
 use App\Exceptions\InsufficientZarks;
 use App\Http\Requests\GenerateCardImagesRequest;
 use App\Http\Requests\UpdateSavedCardRequest;
 use App\Models\CardGeneration;
 use App\Services\CardGenerationPresenter;
+use App\Services\PricingCatalog;
 use App\Services\QueueCardImageGeneration;
 use App\Services\RegenerateCardText;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +26,7 @@ final class CardHistoryController extends Controller
         private CardGenerationPresenter $presenter,
         private RegenerateCardText $regenerateText,
         private QueueCardImageGeneration $queueImages,
+        private PricingCatalog $pricing,
     ) {}
 
     public function index(Request $request): Response
@@ -76,7 +78,7 @@ final class CardHistoryController extends Controller
         try {
             $newGeneration = $this->regenerateText->handle($request->user(), $generation);
         } catch (InsufficientZarks $exception) {
-            $cost = ZarkPrice::TextRegeneration;
+            $cost = $this->pricing->cost(PricingKey::TextRegeneration);
 
             throw ValidationException::withMessages([
                 'balance' => "Недостаточно ZARQ: перегенерация текста стоит {$cost}, на балансе {$exception->available}. Пополните баланс и повторите попытку.",
@@ -111,7 +113,7 @@ final class CardHistoryController extends Controller
             );
         } catch (InsufficientZarks $exception) {
             $photoCount = count($scenarios);
-            $required = $photoCount * ZarkPrice::ImageGeneration;
+            $required = $photoCount * $this->pricing->cost(PricingKey::ImageGeneration);
 
             throw ValidationException::withMessages([
                 'balance' => "Недостаточно ZARQ: для {$photoCount} фото нужно {$required}, на балансе {$exception->available}. Уберите часть фото или пополните баланс.",
