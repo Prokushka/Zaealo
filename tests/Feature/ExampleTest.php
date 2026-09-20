@@ -1,7 +1,9 @@
 <?php
 
-it('returns a successful response', function () {
-    $response = $this->get('/');
+it('redirects the root page to the dashboard', function () {
+    $this->get('/')->assertRedirect(route('dashboard'));
+});
 
-    $response->assertStatus(200);
+it('redirects unknown pages to the dashboard', function () {
+    $this->get('/unknown-page')->assertRedirect(route('dashboard'));
 });

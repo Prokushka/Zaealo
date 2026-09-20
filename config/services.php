@@ -51,7 +51,7 @@ return [
         'model' => env('AITUNNEL_MODEL', 'auto'),
     ],
     'mailru' => [
-        'key' => env('MAIL_SMTP_KEY'),
+        'key' => env('MAIL_PASSWORD'),
     ],
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),

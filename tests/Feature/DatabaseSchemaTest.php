@@ -42,5 +42,17 @@ it('creates the marketplace card and billing tables', function () {
         ]))->toBeTrue()
         ->and(Schema::hasColumns('admin_balance_adjustments', [
             'user_id', 'administrator_id', 'amount', 'reason',
+        ]))->toBeTrue()
+        ->and(Schema::hasColumns('support_tickets', [
+            'user_id', 'assigned_to_id', 'category', 'subject', 'status', 'last_message_at', 'resolved_at',
+        ]))->toBeTrue()
+        ->and(Schema::hasColumns('support_messages', [
+            'support_ticket_id', 'author_id', 'is_staff', 'body',
+        ]))->toBeTrue()
+        ->and(Schema::hasColumns('support_attachments', [
+            'support_message_id', 'disk', 'path', 'original_name', 'mime_type', 'size',
+        ]))->toBeTrue()
+        ->and(Schema::hasColumns('notifications', [
+            'id', 'type', 'notifiable_type', 'notifiable_id', 'data', 'read_at',
         ]))->toBeTrue();
 });

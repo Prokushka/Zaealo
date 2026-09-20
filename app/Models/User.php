@@ -98,6 +98,24 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(AdminBalanceAdjustment::class, 'administrator_id');
     }
 
+    /** @return HasMany<SupportTicket, $this> */
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    /** @return HasMany<SupportTicket, $this> */
+    public function assignedSupportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class, 'assigned_to_id');
+    }
+
+    /** @return HasMany<SupportMessage, $this> */
+    public function supportMessages(): HasMany
+    {
+        return $this->hasMany(SupportMessage::class, 'author_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

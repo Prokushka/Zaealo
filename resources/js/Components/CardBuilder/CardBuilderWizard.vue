@@ -412,7 +412,12 @@ const goNext = () => {
 };
 
 const goBack = () => {
-    goToStep(currentStep.value - 1);
+    const previousStep =
+        currentStep.value === 5 && !hasMarketplaceApiKey.value
+            ? 3
+            : currentStep.value - 1;
+
+    goToStep(previousStep);
 };
 
 const selectAiPhotoCategory = (categoryId) => {

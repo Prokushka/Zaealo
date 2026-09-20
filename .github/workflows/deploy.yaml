@@ -80,9 +80,10 @@ jobs:
             MAIL_HOST=smtp.mail.ru
             MAIL_PORT=465
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_SMTP_KEY=${{ secrets.MAIL_SMTP_KEY }}
+            MAIL_PASSWORD=${{ secrets.MAIL_SMTP_KEY }}
             MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}
             MAIL_FROM_NAME=Zarq
+
 
             REGISTRATION_ALLOWED_EMAIL_DOMAINS=mail.ru,inbox.ru,list.ru,bk.ru,internet.ru,yandex.ru,yandex.com,ya.ru,yahoo.com,ymail.com,rocketmail.com,vk.com
 

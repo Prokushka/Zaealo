@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->brandName('ZARQ Admin')
             ->bootUsing(fn () => app()->setLocale('ru'))
+            ->databaseNotifications()
             ->colors([
                 'primary' => Color::Amber,
             ])

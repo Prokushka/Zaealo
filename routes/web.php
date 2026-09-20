@@ -10,13 +10,14 @@ use App\Http\Controllers\CompetitorCardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketplaceCategorySearchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SupportAttachmentController;
 use App\Http\Controllers\SupportController;
+use App\Http\Controllers\SupportMessageController;
+use App\Http\Controllers\SupportTicketController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->middleware(['auth', 'verified']);
+Route::get('/', fn () => to_route('dashboard'));
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
@@ -24,6 +25,19 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/docs', fn () => Inertia::render('Docs/Index'))->name('docs');
     Route::get('/support', SupportController::class)->name('support');
+    Route::post('/support', [SupportTicketController::class, 'store'])
+        ->middleware('throttle:5,60')
+        ->name('support.tickets.store');
+    Route::get('/support/attachments/{supportAttachment}', SupportAttachmentController::class)
+        ->middleware('throttle:30,1')
+        ->name('support.attachments.show');
+    Route::get('/support/{supportTicket}', [SupportTicketController::class, 'show'])
+        ->whereNumber('supportTicket')
+        ->name('support.tickets.show');
+    Route::post('/support/{supportTicket}/messages', [SupportMessageController::class, 'store'])
+        ->whereNumber('supportTicket')
+        ->middleware('throttle:10,1')
+        ->name('support.messages.store');
 
     Route::get('/history', [CardHistoryController::class, 'index'])
         ->name('card-history.index');
@@ -92,3 +106,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::fallback(fn () => to_route('dashboard'));
